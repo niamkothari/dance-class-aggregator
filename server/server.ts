@@ -2,7 +2,7 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
 import expressPinoLogger from 'express-pino-logger'
-import { JaviClass } from './data'
+import { classes, studios } from './data'
 
 
 const app = express()
@@ -22,6 +22,15 @@ app.listen(port, () => {
     console.log(`Dance class aggregator listening on port ${port}`)
 })
 
-app.get("/api/class", (req, res) => {
-    res.status(200).json(JaviClass)
+
+app.get("/api/classes", (req, res) => {
+    // query db to get all classes
+
+    res.status(200).json(classes)
+})
+
+app.get("/api/studios", (req, res) => {
+    // query db to get all studios
+
+    res.status(200).json(studios)
 })
