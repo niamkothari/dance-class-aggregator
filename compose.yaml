@@ -1,0 +1,52 @@
+version: "3"
+
+networks:
+  danceClassAggregator:
+    external: false
+
+volumes:
+  keycloak:
+    driver: local
+  mongo:
+    driver: local
+
+services:
+  server1:
+    image: server
+    build: ./server
+    environment:
+      - MONGO_URL=mongodb://mongo
+      - PROXY_KEYCLOAK_TO_LOCALHOST=true
+    depends_on:
+      - mongo
+      - keycloak
+    networks:
+      - danceClassAggregator
+  ui1:
+    image: ui
+    build: ./ui
+    networks:
+      - danceClassAggregator
+  keycloak:
+    image: keycloak18
+    container_name: keycloakDanceClassAggregator
+    environment:
+      - KEYCLOAK_USER=niam_kothari
+      - KEYCLOAK_PASSWORD=tap_in_now
+    restart: always
+    networks:
+      - danceClassAggregator
+    volumes:
+      - keycloak:/opt/jboss/keycloak/standalone/data
+    ports:
+      - "127.0.0.1:8081:8080"
+  mongo:
+    image: mongo:4
+    container_name: mongoDanceClassAggregator
+    restart: always
+    networks:
+      - danceClassAggregator
+    volumes:
+      - mongo:/data/db
+    ports:
+      - "127.0.0.1:27017:27017"
