@@ -40,6 +40,12 @@ export interface SpecificClass {
     signUpLink?: string
 }
 
+export interface Administrator {
+    _id: string
+    name: string
+    email: string
+}
+
 let instructors: Instructor[] = [
     {_id: '2', name: 'Sam Javi'},
     {_id: '4', name: 'Huu Rock'},
