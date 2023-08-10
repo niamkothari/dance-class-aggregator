@@ -75,6 +75,31 @@ function checkAuthenticated(req: Request, res: Response, next: NextFunction): vo
     next()
 }
 
+app.post(
+    "/api/logout",
+    (req, res, next) => {
+        req.logout((err) => {
+            if (err) return next(err)
+            res.redirect("/")
+        })
+    }
+)
+
+// if current session has a user, then req.user will not be empty and this will return whatever it holds
+app.get("/api/user", (req, res) => {
+    res.json(req.user || {})
+})
+
+app.get("/api/administrator", checkAuthenticated, async(req, res) => {
+    const email = req.user.email
+    const admin = await administrators.findOne({ email: email })
+    if (admin === null) {
+        res.status(404).json({email})
+        return
+    }
+    res.status(200).json(admin)
+})
+
 app.get("/api/classes", (req, res) => {
     // query db to get all classes
 
@@ -96,8 +121,8 @@ app.post("/api/new-class", (req, res) => {
 // starts mongo connection, logic for authenticating admins, starts server
 client.connect().then(() => {
     logger.info('Successful connection to MongoDB')
-    db = client.db('Dance-class-aggregator-DB')
-    administrators = db.collection('Admins')
+    db = client.db('danceClassAggregatorDB')
+    administrators = db.collection('admins')
     danceClasses = db.collection('Classes')
     instructors = db.collection('Instructors')
     danceStudios = db.collection('Studios')
