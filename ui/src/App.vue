@@ -32,9 +32,9 @@ const user = ref({} as any)
 const currentRoute = ref("")
 provide("user", user)
 
-// onMounted(async() => {
-//     user.value = await (await fetch("/api/user")).json()
-// })
+onMounted(async() => {
+    user.value = await (await fetch("/api/user")).json()
+})
 
 function logout() {
     (window.document.getElementById('logoutForm') as HTMLFormElement).submit()  
