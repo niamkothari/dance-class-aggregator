@@ -2,8 +2,6 @@ import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
 import expressPinotLogger from 'express-pino-logger'
-import { classes, studios } from './data'
-import { Class } from './data'
 import { Collection, Db, MongoClient } from 'mongodb'
 import session from 'express-session'
 import MongoStore from 'connect-mongo'
@@ -22,7 +20,7 @@ const client = new MongoClient(mongoUrl)
 let db: Db
 let administrators: Collection
 let danceClasses: Collection
-let instructors: Collection
+let danceInstructors: Collection
 let danceStudios: Collection
 
 // set up Express
@@ -41,7 +39,7 @@ app.use(expressPinotLogger({ logger }))
 
 // set up session
 app.use(session({
-    secret: 'a just so-so secret',          // check if this can be changed
+    secret: 'a just so-so secret',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false },
@@ -65,16 +63,16 @@ passport.deserializeUser((user: any, done: any) => {
     done(null, user)
 })
 
-
-// isAuthenticated() uses passport.js to check whether current session has authenticated user
+/** Verifies that the current session has an authenticated user */
 function checkAuthenticated(req: Request, res: Response, next: NextFunction): void {
-    if (!req.isAuthenticated()) {
+    if (!req.isAuthenticated()) { // isAuthenticated() uses passport.js
         res.sendStatus(401)
         return
     }
     next()
 }
 
+/** Logs out current user and redirects to home page */
 app.post(
     "/api/logout",
     (req, res, next) => {
@@ -85,11 +83,12 @@ app.post(
     }
 )
 
-// if current session has a user, then req.user will not be empty and this will return whatever it holds
+/** Returns user if current session has a user */ 
 app.get("/api/user", (req, res) => {
     res.json(req.user || {})
 })
 
+/** Returns administrator if current session has a user and that user is a verified admin */
 app.get("/api/administrator", checkAuthenticated, async(req, res) => {
     const email = req.user.email
     const admin = await administrators.findOne({ email: email })
@@ -100,31 +99,45 @@ app.get("/api/administrator", checkAuthenticated, async(req, res) => {
     res.status(200).json(admin)
 })
 
-app.get("/api/classes", (req, res) => {
-    // query db to get all classes
-
+/** Returns all classes */
+app.get("/api/classes", async (req, res) => {
+    const classes = await danceClasses.find({}).toArray()
     res.status(200).json(classes)
 })
 
-app.get("/api/studios", (req, res) => {
+/** Returns all studios */
+app.get("/api/studios", async (req, res) => {
     // query db to get all studios
-
+    const studios = await danceStudios.find({}).toArray()
     res.status(200).json(studios)
 })
 
-app.post("/api/new-class", (req, res) => {
+/** Returns all instructors */
+app.get("/api/instructors", async (req, res) => {
+    const instructors = await danceInstructors.find({}).toArray()
+    res.status(200).json(instructors)
+})
+
+/** Inserts new class into the database. Must be an admin */
+app.post("/api/new-class", checkAuthenticated, async (req, res) => {
+    const email = req.user.email
+    const admin = await administrators.findOne({ email: email })
+    if (admin === null) {
+        res.status(401).json({status: "Unauthorized access"})
+        return
+    }
     const newClass = req.body
-    // send to db
+    // post newClass to db
     res.status(200).json({status: 'ok'})
 })
 
-// starts mongo connection, logic for authenticating admins, starts server
+/** Initiates mongo connection, logic for authenticating admins with Keycloak, starts server */ 
 client.connect().then(() => {
     logger.info('Successful connection to MongoDB')
     db = client.db('danceClassAggregatorDB')
     administrators = db.collection('admins')
     danceClasses = db.collection('Classes')
-    instructors = db.collection('Instructors')
+    danceInstructors = db.collection('Instructors')
     danceStudios = db.collection('Studios')
 
     Issuer.discover("http://127.0.0.1:8081/auth/realms/dance-class-aggregator/.well-known/openid-configuration").then(issuer => {
