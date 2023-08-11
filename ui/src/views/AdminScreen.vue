@@ -1,4 +1,3 @@
-<!-- Admins can add, delete, or adjust classes on the schedule. Eventually scraper will automate this and admins will periodically check in to ensure correctness. -->
 <template>
     <div class="home-container">
         <div v-if="notAuthorized === true">
@@ -12,6 +11,8 @@
             <h1 class="header">Administrator Console</h1>
             <h4 v-if="administrator.value !== null" class="my-5">Hello, {{administrator.name}}</h4>
         </div>
+        <!-- Admin dashboard, including options to add, delete, or adjust classes on the main schedule. 
+        Eventually scraper will automate this and admins will periodically check in to ensure correctness.-->
 	</div>
 </template>
 <script setup lang="ts">

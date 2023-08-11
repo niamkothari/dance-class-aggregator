@@ -1,7 +1,7 @@
 <template>
     <div class="list-container my-4">
         <h2 class="list-title">{{ day }}</h2>
-        <div class="no-classes" v-if="props.classes.length == 0">No classes today princess</div>
+        <div class="no-classes" v-if="props.classes.length == 0">No classes today</div>
         <div v-if="propsSorted" v-for="c in props.classes">
             <ClassComponent :cls="c"/>
         </div>

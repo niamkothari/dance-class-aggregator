@@ -10,10 +10,6 @@
             <DayList class="list" day="Friday" :classes="classes.filter((c) => c.day== 'Friday')"/>
             <DayList class="list" day="Saturday" :classes="classes.filter((c) => c.day== 'Saturday')"/>
         </h3>
-        <div>
-            <span>Know of a class not on this list? Add it here!</span>
-            <div><b-button>Add class</b-button></div>
-        </div>
     </div>
 </template>
 <script setup lang="ts">
