@@ -31,8 +31,8 @@ services:
     image: keycloak18
     container_name: keycloakDanceClassAggregator
     environment:
-      - KEYCLOAK_USER=niam_kothari
-      - KEYCLOAK_PASSWORD=tap_in_now
+      - KEYCLOAK_USER=${Keycloak_User}
+      - KEYCLOAK_PASSWORD=${Keycloak_Password}
     restart: always
     networks:
       - danceClassAggregator
