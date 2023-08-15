@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
 import expressPinotLogger from 'express-pino-logger'
-import { Collection, Db, MongoClient } from 'mongodb'
+import { Collection, Db, MongoClient, ObjectId } from 'mongodb'
 import session from 'express-session'
 import MongoStore from 'connect-mongo'
 import { Issuer, Strategy } from 'openid-client'
@@ -105,9 +105,30 @@ app.get("/api/classes", async (req, res) => {
     res.status(200).json(classes)
 })
 
+/** Returns classes based on filtering request */
+app.get("/api/filteredClasses", async (req, res) => {
+    const filters = req.body    // filters object, ex: filters{ studios: [Brickhouse, BDC], instructors: [Bo Park], styles: []}
+    if (filters.studios.length === 0 && filters.instructors.length === 0 && filters.styles.length === 0) {
+        res.status(400).json({status: "No filters provided"})
+        return
+    }
+
+    const query: any = {}
+    if (filters.studios.length > 0) {
+        query["studio"] = {$in: filters.studios}
+    }
+    if (filters.instructors.length > 0) {
+        query["instructor"] = {$in: filters.instructors}
+    }
+    if (filters.styles.length > 0) {
+        query["style"] = {$in: filters.styles}
+    }
+    const classes = await danceClasses.find(query).toArray()
+    res.status(200).json(classes)
+})
+
 /** Returns all studios */
 app.get("/api/studios", async (req, res) => {
-    // query db to get all studios
     const studios = await danceStudios.find({}).toArray()
     res.status(200).json(studios)
 })
@@ -127,7 +148,24 @@ app.post("/api/new-class", checkAuthenticated, async (req, res) => {
         return
     }
     const newClass = req.body
-    // post newClass to db
+    await danceClasses.updateOne(
+        {
+            name: newClass.name
+        },
+        {
+            $set: {
+                name: newClass.name,
+                instructor: newClass.instructor,
+                studio: newClass.studio,
+                style: newClass.style,
+                day: newClass.day,
+                time: newClass.time
+            }
+        },
+        {
+            upsert: true
+        }
+    )
     res.status(200).json({status: 'ok'})
 })
 
